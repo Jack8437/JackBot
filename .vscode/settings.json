@@ -11,6 +11,11 @@
   // -------- FORMAT ON SAVE --------
   "editor.formatOnSave": true,
 
+  // -------- Fix tabs --------
+  "editor.insertSpaces": true,
+  "editor.tabSize": 4,
+  "editor.detectIndentation": false,
+
   // -------- ORGANIZE IMPORTS ON SAVE --------
   "editor.codeActionsOnSave": {
     "source.organizeImports": true
