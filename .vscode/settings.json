@@ -1,0 +1,39 @@
+{
+  // -------- JAVA RUNTIME --------
+  "java.configuration.runtimes": [
+    {
+      "name": "JavaSE-17",
+      "path": "/Library/Java/JavaVirtualMachines/microsoft-17.jdk/Contents/Home",
+      "default": true
+    }
+  ],
+
+  // -------- FORMAT ON SAVE --------
+  "editor.formatOnSave": true,
+
+  // -------- ORGANIZE IMPORTS ON SAVE --------
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": true
+  },
+
+  // -------- AUTO IMPORTS --------
+  "java.completion.importOrder": [
+    "java",
+    "javax",
+    "org",
+    "com"
+  ],
+  "java.completion.favoriteStaticMembers": [
+    "org.junit.jupiter.api.Assertions.*"
+  ],
+  "java.completion.guessMethodArguments": true,
+
+  // -------- SHOW WARNINGS --------
+  "java.compile.nullAnalysis.mode": "automatic",
+  "java.errors.incompleteClasspath.severity": "warning",
+  "java.format.settings.profile": "GoogleStyle",
+
+  // -------- LINTING --------
+  "java.compile.onSave": true
+}
+
