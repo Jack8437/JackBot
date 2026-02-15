@@ -5,9 +5,12 @@
  * For more details on building Java & JVM projects, please refer to https://docs.gradle.org/9.3.1/userguide/building_java_projects.html in the Gradle documentation.
  */
 
+ import com.github.spotbugs.snom.SpotBugsTask
+
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     application
+    alias(libs.plugins.spotbugs)
     alias(libs.plugins.spotless)
 }
 
@@ -25,6 +28,15 @@ dependencies {
     // This dependency is used by the application.
     // JackBot doesn't need this dependency but for now keep it as a comment as a placeholder
     // implementation(libs.guava)
+
+    compileOnly("com.github.spotbugs:spotbugs-annotations:4.8.3")
+    testCompileOnly("com.github.spotbugs:spotbugs-annotations:4.8.3")
+}
+
+spotbugs {
+    toolVersion.set("4.8.3") // SpotBugs engine version
+    effort.set(com.github.spotbugs.snom.Effort.DEFAULT)
+    reportLevel.set(com.github.spotbugs.snom.Confidence.LOW)
 }
 
 spotless {
@@ -56,6 +68,20 @@ java {
 application {
     // Define the main class for the application.
     mainClass = "com.jackbot.App"
+}
+
+tasks.withType<SpotBugsTask>().configureEach {
+    // fail the build if SpotBugs finds issues
+    ignoreFailures = false
+
+    reports.create("html") {
+        required = true
+        outputLocation = file("$buildDir/reports/spotbugs/${name}.html")
+    }
+    // optional: also generate XML (handy for CI tooling)
+    reports.create("xml") {
+        required = false
+    }
 }
 
 tasks.named<Test>("test") {
