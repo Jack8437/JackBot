@@ -8,6 +8,7 @@
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     application
+    alias(libs.plugins.spotless)
 }
 
 repositories {
@@ -22,7 +23,27 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     // This dependency is used by the application.
-    implementation(libs.guava)
+    // JackBot doesn't need this dependency but for now keep it as a comment as a placeholder
+    // implementation(libs.guava)
+}
+
+spotless {
+  java {
+    // Use the default importOrder configuration
+    importOrder()
+
+    removeUnusedImports()
+    forbidWildcardImports()
+
+    // Cleanthat will refactor your code, but it may break your style: apply it before your formatter
+    // For now comment it out
+    // cleanthat()
+
+    // Formatter
+    googleJavaFormat()
+
+    formatAnnotations()  // fixes formatting of type annotations, see below
+  }
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
@@ -34,7 +55,7 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = "org.example.App"
+    mainClass = "com.jackbot.App"
 }
 
 tasks.named<Test>("test") {
