@@ -67,7 +67,7 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = "com.jackbot.App"
+    mainClass = "com.jackbot.JackBot"
 }
 
 tasks.withType<SpotBugsTask>().configureEach {
