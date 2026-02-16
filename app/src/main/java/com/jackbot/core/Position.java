@@ -10,6 +10,8 @@ public class Position {
   private static final char[] FEN_LETTER_CONVENTION = {
     'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k'
   };
+  public static final String FEN_STARTING_POSITION =
+      "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
   private long[] pieces;
   private long whitePieces;
@@ -19,68 +21,193 @@ public class Position {
   private int castlingRights;
   // En Passant Square
   private int epSquare;
-  // Number of half moves since last pawn move or last capture, used to track 50 move rule (100 half
+  // Number of half moves since last pawn move or last capture, used to track 50
+  // move rule (100 half
   // moves)
   private int halfmoveClock;
   // Move count in chess notation
   private int fullMoveNumber;
 
-  /** Setup the starting position for a standard chess game */
-  Position() {
-    pieces = startingBoard();
+  /** Empty Constructor */
+  private Position() {}
+
+  private Position(
+      long[] pieces,
+      int sideToMove,
+      int castlingRights,
+      int epSquare,
+      int halfmoveClock,
+      int fullMoveNumber) {
+    this.pieces = pieces;
     recomputePieces();
-    sideToMove = Pieces.WHITE;
-    castlingRights = WHITE_KINGSIDE | WHITE_QUEENSIDE | BLACK_KINGSIDE | BLACK_QUEENSIDE;
-    epSquare = -1;
-    halfmoveClock = 0;
-    fullMoveNumber = 1;
+    this.sideToMove = sideToMove;
+    this.castlingRights = castlingRights;
+    this.epSquare = epSquare;
+    this.halfmoveClock = halfmoveClock;
+    this.fullMoveNumber = fullMoveNumber;
   }
 
-  /**
-   * Returns the starting board as a bitboard
-   *
-   * @return the starting position as a bitboard for a standard game of chess
-   */
-  private long[] startingBoard() {
-    long[] startingBoard = new long[12];
-    // Setup the white pieces
-    // White pawns
-    startingBoard[Pieces.WP] = Squares.rankMask(Squares.RANK_2);
-    // White knights
-    startingBoard[Pieces.WN] =
-        Squares.bit(Squares.sq(Squares.FILE_B, Squares.RANK_1))
-            | Squares.bit(Squares.sq(Squares.FILE_G, Squares.RANK_1));
-    // White bishops
-    startingBoard[Pieces.WB] =
-        Squares.bit(Squares.sq(Squares.FILE_C, Squares.RANK_1))
-            | Squares.bit(Squares.sq(Squares.FILE_F, Squares.RANK_1));
-    // White rooks
-    startingBoard[Pieces.WR] =
-        Squares.bit(Squares.sq(Squares.FILE_A, Squares.RANK_1))
-            | Squares.bit(Squares.sq(Squares.FILE_H, Squares.RANK_1));
-    // White queen
-    startingBoard[Pieces.WQ] = Squares.bit(Squares.sq(Squares.FILE_D, Squares.RANK_1));
-    // White king
-    startingBoard[Pieces.WK] = Squares.bit(Squares.sq(Squares.FILE_E, Squares.RANK_1));
-    // Black pawns
-    startingBoard[Pieces.BP] = Squares.rankMask(Squares.RANK_7);
-    // Black knights
-    startingBoard[Pieces.BN] =
-        Squares.bit(Squares.sq(Squares.FILE_B, Squares.RANK_8))
-            | Squares.bit(Squares.sq(Squares.FILE_G, Squares.RANK_8));
-    // Black bishops
-    startingBoard[Pieces.BB] =
-        Squares.bit(Squares.sq(Squares.FILE_C, Squares.RANK_8))
-            | Squares.bit(Squares.sq(Squares.FILE_F, Squares.RANK_8));
-    // Black rooks
-    startingBoard[Pieces.BR] =
-        Squares.bit(Squares.sq(Squares.FILE_A, Squares.RANK_8))
-            | Squares.bit(Squares.sq(Squares.FILE_H, Squares.RANK_8));
-    // Black queen
-    startingBoard[Pieces.BQ] = Squares.bit(Squares.sq(Squares.FILE_D, Squares.RANK_8));
-    // Black king
-    startingBoard[Pieces.BK] = Squares.bit(Squares.sq(Squares.FILE_E, Squares.RANK_8));
-    return startingBoard;
+  public static Position fromFEN(String fen) throws IllegalArgumentException {
+    // Break up the FEN input
+    String[] seperatedFen = fen.split(" ");
+    if (seperatedFen.length != 6) {
+      throw new IllegalArgumentException(
+          "FEN input was incorrect (ex. \"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1\")");
+    }
+    // Convert the FEN piece input into a bitboard
+    long[] fenPieces = convertFenToPieces(seperatedFen[0]);
+    // Figure out the side to move
+    int fenSideToMove;
+    if (seperatedFen[1].equals("w")) {
+      fenSideToMove = Pieces.WHITE;
+    } else if (seperatedFen[1].equals("b")) {
+      fenSideToMove = Pieces.BLACK;
+    } else {
+      throw new IllegalArgumentException("Invalid side to move entry (most be w or b)");
+    }
+    // Figure out current castling rights
+    int fenCastlingRights = convertFenToCastlingRights(seperatedFen[2]);
+    // Figure out if en passant is possible
+    int fenEnPassant = convertFenToEnPassant(seperatedFen[3]);
+    // Convert clock and number to ints
+    int fenHalfmoveClock;
+    try {
+      fenHalfmoveClock = Integer.parseInt(seperatedFen[4]);
+    } catch (NumberFormatException e) {
+      throw new IllegalArgumentException("Invalid FEN halfmove clock");
+    }
+    int fenFullMoveNumber;
+    try {
+      fenFullMoveNumber = Integer.parseInt(seperatedFen[5]);
+    } catch (NumberFormatException e) {
+      throw new IllegalArgumentException("Invalid FEN full move number");
+    }
+    // Finally create new position and return it
+    return new Position(
+        fenPieces,
+        fenSideToMove,
+        fenCastlingRights,
+        fenEnPassant,
+        fenHalfmoveClock,
+        fenFullMoveNumber);
+  }
+
+  // Helper methods to convert FEN input into a Position object
+
+  private static long[] convertFenToPieces(String fen) throws IllegalArgumentException {
+    long[] fenPieces = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    String[] fenRanks = fen.split("/");
+    if (fenRanks.length != 8) {
+      throw new IllegalArgumentException(
+          "Invalid FEN piece notation, remember each rank is separated by a \"/\"");
+    }
+    int file;
+    int rank = 7;
+    for (int fenRank = 0; fenRank <= 7; fenRank++) {
+      file = 0;
+      for (int stringWalker = 0; stringWalker < fenRanks[fenRank].length(); stringWalker++) {
+        try {
+          int fenEmptySpace =
+              Integer.parseInt(fenRanks[fenRank].substring(stringWalker, stringWalker + 1));
+          file += fenEmptySpace;
+        } catch (NumberFormatException e) {
+          // Check if it is a piece instead of empty space
+          int fenPiece = convertFenPieceToNumberValue(fenRanks[fenRank].charAt(stringWalker));
+          fenPieces[fenPiece] |= Squares.bit(Squares.sq(file, rank));
+          file++;
+        }
+        if (file > 8) {
+          throw new IllegalArgumentException(
+              "Rank " + rank + " has more than 8 pieces and/or empty spaces");
+        }
+      }
+      rank--;
+    }
+    return fenPieces;
+  }
+
+  private static int convertFenPieceToNumberValue(char fenPiece) throws IllegalArgumentException {
+    switch (fenPiece) {
+      case 'P':
+        return Pieces.WP;
+      case 'N':
+        return Pieces.WN;
+      case 'B':
+        return Pieces.WB;
+      case 'R':
+        return Pieces.WR;
+      case 'Q':
+        return Pieces.WQ;
+      case 'K':
+        return Pieces.WK;
+      case 'p':
+        return Pieces.BP;
+      case 'n':
+        return Pieces.BN;
+      case 'b':
+        return Pieces.BB;
+      case 'r':
+        return Pieces.BR;
+      case 'q':
+        return Pieces.BQ;
+      case 'k':
+        return Pieces.BK;
+      default:
+        throw new IllegalArgumentException("Invalid FEN piece position " + fenPiece);
+    }
+  }
+
+  private static int convertFenToCastlingRights(String fen) throws IllegalArgumentException {
+    String noCastling = "-";
+    int fenCastlingRights = 0;
+    if (fen.equals(noCastling)) {
+      return fenCastlingRights;
+    }
+    for (int charCounter = 0; charCounter < fen.length(); charCounter++) {
+      switch (fen.charAt(charCounter)) {
+        case 'K' -> fenCastlingRights |= WHITE_KINGSIDE;
+        case 'Q' -> fenCastlingRights |= WHITE_QUEENSIDE;
+        case 'k' -> fenCastlingRights |= BLACK_KINGSIDE;
+        case 'q' -> fenCastlingRights |= BLACK_QUEENSIDE;
+        default -> throw new IllegalArgumentException("Invalid FEN castling rights");
+      }
+    }
+    return fenCastlingRights;
+  }
+
+  private static int convertFenToEnPassant(String fen) throws IllegalArgumentException {
+    String noEnPassant = "-";
+    int fenEnPassant = -1;
+    // Check if en passant is no possible
+    if (fen.equals(noEnPassant)) {
+      return fenEnPassant;
+    }
+    // Ensure if en passant is possible, the entry is the correct length
+    if (fen.length() != 2) {
+      throw new IllegalArgumentException("Invalid FEN en passant entry");
+    }
+    // Convert the FEN file to the internal numbers
+    int fenFile;
+    switch (fen.charAt(0)) {
+      case 'a' -> fenFile = Squares.FILE_A;
+      case 'b' -> fenFile = Squares.FILE_B;
+      case 'c' -> fenFile = Squares.FILE_C;
+      case 'd' -> fenFile = Squares.FILE_D;
+      case 'e' -> fenFile = Squares.FILE_E;
+      case 'f' -> fenFile = Squares.FILE_F;
+      case 'g' -> fenFile = Squares.FILE_G;
+      case 'h' -> fenFile = Squares.FILE_H;
+      default -> throw new IllegalArgumentException("Invalid file for FEN en passant entry");
+    }
+    // Convert the FEN rank to the internal numbers
+    int fenRank;
+    try {
+      fenRank = Integer.parseInt(fen.substring(1)) - 1;
+    } catch (NumberFormatException e) {
+      throw new IllegalArgumentException("Invalid rank for FEN en passant entry");
+    }
+    fenEnPassant = Squares.sq(fenFile, fenRank);
+    return fenEnPassant;
   }
 
   /** Update all piece variables based on the current position. */
@@ -102,38 +229,85 @@ public class Position {
     allPieces = whitePieces | blackPieces;
   }
 
-  long[] getPieces() {
+  // Getter methods
+
+  /**
+   * Clones pieces to ensure the original is not mutable
+   *
+   * @return clone of pieces
+   */
+  public long[] getPieces() {
     return pieces.clone();
   }
 
+  /**
+   * Return the long whitePieces
+   *
+   * @return whitePieces
+   */
   long getWhitePieces() {
     return whitePieces;
   }
 
+  /**
+   * Return the long blackPieces
+   *
+   * @return blackPieces
+   */
   long getBlackPieces() {
     return blackPieces;
   }
 
+  /**
+   * Return the long allPieces
+   *
+   * @return allPieces
+   */
   long getAllPieces() {
     return allPieces;
   }
 
+  /**
+   * Return the int sideToMove
+   *
+   * @return sideToMove
+   */
   int getSideToMove() {
     return sideToMove;
   }
 
+  /**
+   * Return the int castlingRights
+   *
+   * @return castlingRights
+   */
   int getCastlingRights() {
     return castlingRights;
   }
 
+  /**
+   * Return the square for en passant, -1 means en passant is not possible
+   *
+   * @return epSquare
+   */
   int getEpSquare() {
     return epSquare;
   }
 
+  /**
+   * Return the int halfmoveClock
+   *
+   * @return halfmoveClock
+   */
   int getHalfmoveClock() {
     return halfmoveClock;
   }
 
+  /**
+   * Return the int fullMoveNumber
+   *
+   * @return fullMoveNumber
+   */
   int getFullMoveNumber() {
     return fullMoveNumber;
   }
@@ -151,13 +325,19 @@ public class Position {
   @Override
   public String toString() {
     StringBuilder humanReadableBoard = new StringBuilder();
-    for (int rank = 0; rank <= 7; rank++) {
+    for (int rank = 7; rank >= 0; rank--) {
       for (int file = 0; file <= 7; file++) {
         humanReadableBoard.append(getPieceAt(Squares.sq(file, rank)));
         humanReadableBoard.append(" ");
       }
       humanReadableBoard.append("\n");
     }
+    humanReadableBoard.append("Metadata:\n");
+    humanReadableBoard.append("Side to move: " + sideToMove + "\n");
+    humanReadableBoard.append("Castling rights: " + castlingRights + "\n");
+    humanReadableBoard.append("En passant square: " + epSquare + "\n");
+    humanReadableBoard.append("Halfmove clock: " + halfmoveClock + "\n");
+    humanReadableBoard.append("Full move number: " + fullMoveNumber + "\n");
     return humanReadableBoard.toString();
   }
 }
