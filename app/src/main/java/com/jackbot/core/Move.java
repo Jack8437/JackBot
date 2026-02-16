@@ -2,13 +2,9 @@ package com.jackbot.core;
 
 public final class Move {
   /**
-   * rawData uses bits to store all the move data needed
-   * Bits 0-5: from square (0-63)
-   * Bits 6-11: to square (0-63)
-   * Bits 12-15: promotionFlag
-   * 0: none, 1: knight, 2: bishop, 3: rook, 4: queen
-   * Bits 16-19: extraFlags
-   * Bit 16: capture, Bit 17: double pawn push, Bit 18: en passant, Bit 19: castle
+   * rawData uses bits to store all the move data needed Bits 0-5: from square (0-63) Bits 6-11: to
+   * square (0-63) Bits 12-15: promotionFlag 0: none, 1: knight, 2: bishop, 3: rook, 4: queen Bits
+   * 16-19: extraFlags Bit 16: capture, Bit 17: double pawn push, Bit 18: en passant, Bit 19: castle
    */
   private final int rawData;
 
@@ -28,14 +24,15 @@ public final class Move {
   // Extractor helpers
   private static final int SQ_MASK = 0x3F;
   private static final int FLAG_MASK = 0xF;
-  private static final char[] PROMOTION_PIECE = { 'x', 'n', 'b', 'r', 'q' };
+  private static final char[] PROMOTION_PIECE = {'x', 'n', 'b', 'r', 'q'};
 
   // Constructors
   private Move(int from, int to) {
     this(from, to, 0, 0);
   }
 
-  private Move(int from, int to, int promotionFlag, int otherFlags) throws IllegalArgumentException {
+  private Move(int from, int to, int promotionFlag, int otherFlags)
+      throws IllegalArgumentException {
     // Validate from and to
     if ((from < 0 || from > 63) || (to < 0 || to > 63)) {
       throw new IllegalArgumentException("Invalid move, must be between 0-63");
