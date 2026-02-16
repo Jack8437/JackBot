@@ -25,3 +25,6 @@ build
 
 # Ignore Kotlin plugin data
 .kotlin
+
+# Remove vscode settings
+.vscode
