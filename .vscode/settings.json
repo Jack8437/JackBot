@@ -13,13 +13,13 @@
 
   // -------- Fix tabs --------
   "editor.insertSpaces": true,
-  "editor.tabSize": 4,
+  "editor.tabSize": 2,
   "editor.detectIndentation": false,
 
   // -------- ORGANIZE IMPORTS ON SAVE --------
   "editor.codeActionsOnSave": {
-    "source.organizeImports": true
-  },
+    "source.organizeImports": "explicit"
+},
 
   // -------- AUTO IMPORTS --------
   "java.completion.importOrder": [
