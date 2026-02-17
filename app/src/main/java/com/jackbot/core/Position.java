@@ -384,6 +384,42 @@ public class Position {
   }
 
   @Override
+  public int hashCode() {
+    assert false : "hashCode not designed";
+    return 42; // any arbitrary constant will do
+  }
+
+  @Override
+  public boolean equals(Object otherObject) {
+    // Ensure otherObject is a Position then cast to a Position
+    if (!(otherObject instanceof Position)) {
+      return false;
+    }
+    Position other = (Position) otherObject;
+    // Loop through and check the long array of pieces
+    for (int counter = 0; counter < pieces.length; counter++) {
+      if (this.pieces[counter] != other.pieces[counter]) {
+        return false;
+      }
+    }
+    // Check the longs next
+    if ((this.whitePieces != other.whitePieces)
+        || (this.blackPieces != other.blackPieces)
+        || (this.allPieces != other.allPieces)) {
+      return false;
+    }
+    // Finally check the ints
+    if ((this.sideToMove != other.sideToMove)
+        || (this.castlingRights != other.castlingRights)
+        || (this.epSquare != other.epSquare)
+        || (this.halfmoveClock != other.halfmoveClock)
+        || (this.fullMoveNumber != other.fullMoveNumber)) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
   public String toString() {
     StringBuilder humanReadableBoard = new StringBuilder();
     for (int rank = 7; rank >= 0; rank--) {

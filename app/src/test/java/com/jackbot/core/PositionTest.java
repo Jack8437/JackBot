@@ -2,6 +2,7 @@ package com.jackbot.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -226,8 +227,8 @@ public class PositionTest {
     Position expectedUndo = Position.fromFEN(Position.FEN_STARTING_POSITION);
     Move testMove = Move.of(8, 16);
     startingBoard.makeMove(testMove);
-    assertEquals(expectedMove.getAllPieces(), startingBoard.getAllPieces());
+    assertTrue(startingBoard.equals(expectedMove));
     startingBoard.undoMove(testMove);
-    assertEquals(expectedUndo.getAllPieces(), startingBoard.getAllPieces());
+    assertTrue(startingBoard.equals(expectedUndo));
   }
 }
