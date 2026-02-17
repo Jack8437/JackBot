@@ -217,4 +217,17 @@ public class PositionTest {
     String invalidTotalMovePosition = "8/8/8/8/8/8/8/8 w - - 0 a";
     assertThrows(IllegalArgumentException.class, () -> Position.fromFEN(invalidTotalMovePosition));
   }
+
+  @Test()
+  void testBasicPieceMoveAndUndo() {
+    Position startingBoard = Position.fromFEN(Position.FEN_STARTING_POSITION);
+    Position expectedMove =
+        Position.fromFEN("rnbqkbnr/pppppppp/8/8/8/P7/1PPPPPPP/RNBQKBNR b KQkq - 1 1");
+    Position expectedUndo = Position.fromFEN(Position.FEN_STARTING_POSITION);
+    Move testMove = Move.of(8, 16);
+    startingBoard.makeMove(testMove);
+    assertEquals(expectedMove.getAllPieces(), startingBoard.getAllPieces());
+    startingBoard.undoMove(testMove);
+    assertEquals(expectedUndo.getAllPieces(), startingBoard.getAllPieces());
+  }
 }
