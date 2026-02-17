@@ -26,5 +26,8 @@ build
 # Ignore Kotlin plugin data
 .kotlin
 
-# Remove vscode settings
+# Ignore vscode settings
 .vscode
+
+# Ignore .DS_Store (mac finder)
+.DS_Store
