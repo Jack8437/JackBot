@@ -28,8 +28,8 @@ public class Position {
   // Move count in chess notation
   private int fullMoveNumber;
 
-  /** Empty Constructor */
-  private Position() {}
+  private Undo[] undoStack = new Undo[255];
+  private int ply = 0;
 
   private Position(
       long[] pieces,
@@ -45,6 +45,10 @@ public class Position {
     this.epSquare = epSquare;
     this.halfmoveClock = halfmoveClock;
     this.fullMoveNumber = fullMoveNumber;
+    // Create undo stack
+    for (int counter = 0; counter < undoStack.length; counter++) {
+      undoStack[counter] = new Undo();
+    }
   }
 
   public static Position fromFEN(String fen) throws IllegalArgumentException {
@@ -229,6 +233,63 @@ public class Position {
     allPieces = whitePieces | blackPieces;
   }
 
+  public void makeMove(Move move) {
+    // Update undo stack
+    undoStack[ply].castlingRights = this.castlingRights;
+    undoStack[ply].epSquare = this.epSquare;
+    undoStack[ply].halfmoveClock = this.halfmoveClock;
+    undoStack[ply].fullMoveNumber = this.fullMoveNumber;
+    undoStack[ply].capturedPieceIndex = -1;
+    undoStack[ply].capturedSquare = -1;
+    ply++;
+    // Move piece
+    this.movePiece(move.from(), move.to());
+    // Flip sideToMove
+    this.flipSideToMove();
+    // TODO: check for en passant
+    this.epSquare = -1;
+    // TODO: update halfmoveClock correctly
+    this.halfmoveClock++;
+    if (this.sideToMove == Pieces.WHITE) {
+      this.fullMoveNumber++;
+    }
+    // Recompute Occupancies
+    recomputePieces();
+  }
+
+  public void undoMove(Move move) {
+    // Restore metadata from undoStack
+    ply--;
+    this.castlingRights = undoStack[ply].castlingRights;
+    this.epSquare = undoStack[ply].epSquare;
+    this.halfmoveClock = undoStack[ply].halfmoveClock;
+    this.fullMoveNumber = undoStack[ply].fullMoveNumber;
+    // Flip sideToMove
+    this.flipSideToMove();
+    // Move piece back
+    this.movePiece(move.to(), move.from());
+    // Recompute occupancies
+    recomputePieces();
+  }
+
+  private void flipSideToMove() {
+    this.sideToMove = Math.abs(this.sideToMove - 1);
+  }
+
+  private void movePiece(int from, int to) {
+    int pieceType = this.getPieceAt(from);
+    this.removePieceAt(pieceType, from);
+    this.addPieceAt(pieceType, to);
+  }
+
+  private void removePieceAt(int pieceType, int sq) {
+    pieces[pieceType] &= ~(Squares.bit(sq));
+  }
+
+  private void addPieceAt(int pieceType, int sq) {
+    pieces[pieceType] |= Squares.bit(sq);
+  }
+
   // Getter methods
 
   /**
@@ -312,14 +373,14 @@ public class Position {
     return fullMoveNumber;
   }
 
-  private char getPieceAt(int square) {
+  private int getPieceAt(int square) {
     long mask = Squares.bit(square);
     for (int counter = 0; counter < 12; counter++) {
       if ((pieces[counter] & mask) != 0) {
-        return FEN_LETTER_CONVENTION[counter];
+        return counter;
       }
     }
-    return '.';
+    return -1;
   }
 
   @Override
@@ -327,7 +388,12 @@ public class Position {
     StringBuilder humanReadableBoard = new StringBuilder();
     for (int rank = 7; rank >= 0; rank--) {
       for (int file = 0; file <= 7; file++) {
-        humanReadableBoard.append(getPieceAt(Squares.sq(file, rank)));
+        int piece = getPieceAt(Squares.sq(file, rank));
+        if (piece != -1) {
+          humanReadableBoard.append(FEN_LETTER_CONVENTION[getPieceAt(Squares.sq(file, rank))]);
+        } else {
+          humanReadableBoard.append('.');
+        }
         humanReadableBoard.append(" ");
       }
       humanReadableBoard.append("\n");

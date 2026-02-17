@@ -3,7 +3,7 @@ package com.jackbot.core;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 @SuppressFBWarnings(
-    value = "UUF_UNUSED_FIELD",
+    value = "URF_UNREAD_FIELD",
     justification = "Suppress for now, errors will be fixed once Undo is integrated into Position")
 public final class Undo {
   int castlingRights;
@@ -12,4 +12,6 @@ public final class Undo {
   int fullMoveNumber;
   int capturedPieceIndex;
   int capturedSquare;
+
+  public Undo() {}
 }
