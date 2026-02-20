@@ -2,35 +2,93 @@ package com.jackbot.core;
 
 public class Position {
   // Bit flags to represent castling rights
+  /** 1 represents if white can castle kingside. */
   public static final int WHITE_KINGSIDE = 1;
+
+  /** 2 represents if white can castle queenside. */
   public static final int WHITE_QUEENSIDE = 2;
+
+  /** 4 represents if black can castle kingside. */
   public static final int BLACK_KINGSIDE = 4;
+
+  /** 8 represents if black can castle queenside. */
   public static final int BLACK_QUEENSIDE = 8;
 
+  /**
+   * A static array of chars used for converting piece types represented as ints to human readable
+   * piece types. Uppercase represents a piece for white, lowercase represents a piece for black. P
+   * is a pawn, N is a knight, B is a bishop, R is a rook, Q is a queen, and K is the king.
+   */
   private static final char[] FEN_LETTER_CONVENTION = {
     'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k'
   };
+
+  /**
+   * A static string used to represent the starting position of a standard game of chess in FEN
+   * notation. FEN notation is how a chess position is entered into the Position class.
+   */
   public static final String FEN_STARTING_POSITION =
       "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
+  /**
+   * A array of longs representing all pieces on the board. Starts at white pawns and ends with
+   * black king, see Pieces class for which long each piece type is.
+   */
   private long[] pieces;
+
+  /** A long containing all the white pieces in the current position. */
   private long whitePieces;
+
+  /** A long containing all the black pieces in the current position. */
   private long blackPieces;
+
+  /** A long containing all the pieces in the current position. */
   private long allPieces;
+
+  /** A int to represent the current side to move in the position. 0 is white, 1 is black. */
   private int sideToMove;
+
+  /**
+   * An int representing the current castling rights for both white and black in a position. Uses
+   * bit flags stored in the Position class.
+   */
   private int castlingRights;
-  // En Passant Square
+
+  /**
+   * Square where en passant can be played in the current position. -1 if en passant can not be
+   * played in the current position.
+   */
   private int epSquare;
-  // Number of half moves since last pawn move or last capture, used to track 50
-  // move rule (100 half
-  // moves)
+
+  /**
+   * Counter since the last pawn move or capture. This is used to track the 50 move rule. At 100 the
+   * game ends in a tie.
+   */
   private int halfmoveClock;
-  // Move count in chess notation
+
+  /** The amount of total moves in the current position. Ticks up after each move by black. */
   private int fullMoveNumber;
 
+  /**
+   * A stack that keeps track of all the previous positions. After a move is made on the Position
+   * object, the move is saved in the undoStack. This way the position is able to freely revert back
+   * as many times as needed until it reaches the original position.
+   */
   private Undo[] undoStack = new Undo[255];
+
+  /** Counter for undoStack. */
   private int ply = 0;
 
+  /**
+   * Used by the static fromFEN method to create a Position object.
+   *
+   * @param pieces all the pieces in the current position.
+   * @param sideToMove the current side to move.
+   * @param castlingRights the castling rights for both players in the position.
+   * @param epSquare square where en passant can be played, -1 if it is not possible.
+   * @param halfmoveClock current halfmove clock in the position.
+   * @param fullMoveNumber current full move clock in the position.
+   */
   private Position(
       long[] pieces,
       int sideToMove,
@@ -51,6 +109,14 @@ public class Position {
     }
   }
 
+  /**
+   * This method is how a Position object is able to be created. The chess position is entered in
+   * FEN notation.
+   *
+   * @param fen the position in FEN notation.
+   * @return a new Position object representing the FEN notation.
+   * @throws IllegalArgumentException if the FEN notation is incorrectly formatted.
+   */
   public static Position fromFEN(String fen) throws IllegalArgumentException {
     // Break up the FEN input
     String[] seperatedFen = fen.split(" ");
@@ -97,7 +163,14 @@ public class Position {
   }
 
   // Helper methods to convert FEN input into a Position object
-
+  /**
+   * Takes the pieces part of the FEN notation and converts it into an array of longs that the
+   * Position object can use.
+   *
+   * @param fen notation of just the current piece position.
+   * @return a long array containing all the pieces in the current position.
+   * @throws IllegalArgumentException if the FEN is formatted incorrectly, too many ranks or files.
+   */
   private static long[] convertFenToPieces(String fen) throws IllegalArgumentException {
     long[] fenPieces = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     String[] fenRanks = fen.split("/");
@@ -130,6 +203,13 @@ public class Position {
     return fenPieces;
   }
 
+  /**
+   * A helper method that will convert the letter of the piece to an int usable to pieces.
+   *
+   * @param fenPiece piece type in FEN notation.
+   * @return the piece type as an int noted by the Position class.
+   * @throws IllegalArgumentException if the fenPiece is not a letter that is used in FEN notation.
+   */
   private static int convertFenPieceToNumberValue(char fenPiece) throws IllegalArgumentException {
     switch (fenPiece) {
       case 'P':

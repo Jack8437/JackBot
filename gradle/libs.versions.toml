@@ -4,14 +4,17 @@
 # For the reason guava is commented out, see build.gradle.kts
 
 [versions]
+checkstyle = "10.12.4"
 #guava = "33.4.6-jre"
 junit-jupiter = "5.12.1"
 spotbugs = "6.4.8"
+spotbugsAnnotations = "4.8.3"
 spotless = "8.2.1"
 
 [libraries]
 #guava = { module = "com.google.guava:guava", version.ref = "guava" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter" }
+spotbugs-annotations = { module = "com.github.spotbugs:spotbugs-annotations", version.ref = "spotbugsAnnotations" }
 
 [plugins]
 spotbugs = { id = "com.github.spotbugs", version.ref = "spotbugs" }
