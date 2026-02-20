@@ -30,10 +30,6 @@
         <!-- Braces -->
         <module name="NeedBraces"/>
 
-        <!-- Whitespace -->
-        <module name="WhitespaceAfter"/>
-        <module name="WhitespaceAround"/>
-
     </module>
 
     <!-- Line length -->
