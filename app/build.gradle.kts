@@ -6,10 +6,12 @@
  */
 
  import com.github.spotbugs.snom.SpotBugsTask
+ import org.gradle.api.plugins.quality.Checkstyle
 
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     application
+    checkstyle
     alias(libs.plugins.spotbugs)
     alias(libs.plugins.spotless)
 }
@@ -29,8 +31,15 @@ dependencies {
     // JackBot doesn't need this dependency but for now keep it as a comment as a placeholder
     // implementation(libs.guava)
 
-    compileOnly("com.github.spotbugs:spotbugs-annotations:4.8.3")
-    testCompileOnly("com.github.spotbugs:spotbugs-annotations:4.8.3")
+    compileOnly(libs.spotbugs.annotations)
+    testCompileOnly(libs.spotbugs.annotations)
+}
+
+checkstyle {
+    toolVersion = libs.versions.checkstyle.get()
+    configFile = rootProject.file("config/checkstyle/checkstyle.xml")
+    isIgnoreFailures = false
+    isShowViolations = true
 }
 
 spotbugs {
@@ -68,6 +77,19 @@ java {
 application {
     // Define the main class for the application.
     mainClass = "com.jackbot.JackBot"
+}
+
+tasks.withType<Checkstyle>().configureEach {
+    javaLauncher.set(
+        javaToolchains.launcherFor {
+            languageVersion.set(JavaLanguageVersion.of(17))
+        }
+    )
+
+    reports {
+        xml.required.set(false)
+        html.required.set(true)
+    }
 }
 
 tasks.withType<SpotBugsTask>().configureEach {
