@@ -10,6 +10,9 @@ public class PositionTest {
 
   // private static String FEN_FOOLS_MATE =
   // "rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3";
+  /**
+   * A chess position in FEN notation where en passant is playable.
+   */
   private static String FEN_EN_PASSANT = "8/8/8/3Pp3/4K3/8/8/4k3 w - e6 0 1";
 
   // private static String FEN_GAME_OF_THE_CENTURY =
