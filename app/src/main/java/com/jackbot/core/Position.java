@@ -314,8 +314,6 @@ public class Position {
   }
 
   public void makeMove(Move move) {
-    // Get side that moved
-    int movedSide = this.sideToMove;
     // Update undo stack
     undoStack[ply].castlingRights = this.castlingRights;
     undoStack[ply].epSquare = this.epSquare;
