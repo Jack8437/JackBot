@@ -314,6 +314,8 @@ public class Position {
   }
 
   public void makeMove(Move move) {
+    // Get side that moved
+    int movedSide = this.sideToMove;
     // Update undo stack
     undoStack[ply].castlingRights = this.castlingRights;
     undoStack[ply].epSquare = this.epSquare;
@@ -358,6 +360,15 @@ public class Position {
 
   private void movePiece(int from, int to) {
     int pieceType = this.getPieceAt(from);
+    int possibleCapturedPiece = this.getPieceAt(to);
+    if (possibleCapturedPiece != -1) {
+      this.removePieceAt(possibleCapturedPiece, to);
+      undoStack[ply].capturedPieceIndex = possibleCapturedPiece;
+      undoStack[ply].capturedSquare = to;
+    } else {
+      undoStack[ply].capturedPieceIndex = -1;
+      undoStack[ply].capturedSquare = -1;
+    }
     this.removePieceAt(pieceType, from);
     this.addPieceAt(pieceType, to);
   }
