@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 public class PositionMoveTest {
+  /** Fools mate position */
   private static String FEN_FOOLS_MATE =
       "rnbqk2r/pppp1ppp/5n2/4p2Q/1bB1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 1";
 
