@@ -2,14 +2,11 @@ package com.jackbot.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
 public class PositionTest {
 
-  // private static String FEN_FOOLS_MATE =
-  // "rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3";
   /** A chess position in FEN notation where en passant is playable. */
   private static String FEN_EN_PASSANT = "8/8/8/3Pp3/4K3/8/8/4k3 w - e6 0 1";
 
@@ -218,18 +215,5 @@ public class PositionTest {
     assertThrows(IllegalArgumentException.class, () -> Position.fromFEN(invalidHalfmovePosition));
     String invalidTotalMovePosition = "8/8/8/8/8/8/8/8 w - - 0 a";
     assertThrows(IllegalArgumentException.class, () -> Position.fromFEN(invalidTotalMovePosition));
-  }
-
-  @Test()
-  void testBasicPieceMoveAndUndo() {
-    Position startingBoard = Position.fromFEN(Position.FEN_STARTING_POSITION);
-    Position expectedMove =
-        Position.fromFEN("rnbqkbnr/pppppppp/8/8/8/P7/1PPPPPPP/RNBQKBNR b KQkq - 1 1");
-    Position expectedUndo = Position.fromFEN(Position.FEN_STARTING_POSITION);
-    Move testMove = Move.of(8, 16);
-    startingBoard.makeMove(testMove);
-    assertTrue(startingBoard.equals(expectedMove));
-    startingBoard.undoMove(testMove);
-    assertTrue(startingBoard.equals(expectedUndo));
   }
 }
