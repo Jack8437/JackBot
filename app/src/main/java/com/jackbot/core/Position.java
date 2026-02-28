@@ -313,7 +313,15 @@ public class Position {
     allPieces = whitePieces | blackPieces;
   }
 
+  /**
+   * Takes a Move object and applies it to the Position. Will store the previous move in the
+   * undoStack.
+   *
+   * @param move to apply to the Position
+   */
   public void makeMove(Move move) {
+    // Figure out what piece is moving
+    int pieceMoving = this.getPieceAt(move.from());
     // Update undo stack
     undoStack[ply].castlingRights = this.castlingRights;
     undoStack[ply].epSquare = this.epSquare;
@@ -321,23 +329,43 @@ public class Position {
     undoStack[ply].fullMoveNumber = this.fullMoveNumber;
     undoStack[ply].capturedPieceIndex = -1;
     undoStack[ply].capturedSquare = -1;
-    ply++;
     // Move piece
-    this.movePiece(move.from(), move.to());
+    this.movePiece(pieceMoving, move.from(), move.to());
+    // Check for en passant
+    if (move.isDoublePush()) {
+      if (this.sideToMove == Pieces.WHITE) {
+        this.epSquare = move.to() - 8;
+      } else {
+        this.epSquare = move.to() + 8;
+      }
+    } else {
+      this.epSquare = -1;
+    }
     // Flip sideToMove
     this.flipSideToMove();
-    // TODO: check for en passant
-    this.epSquare = -1;
-    // TODO: update halfmoveClock correctly
-    this.halfmoveClock++;
+    // Update halfmoveClock correctly
+    if (pieceMoving == Pieces.WP || pieceMoving == Pieces.BP || move.isCapture()) {
+      this.halfmoveClock = 0;
+    } else {
+      this.halfmoveClock++;
+    }
     if (this.sideToMove == Pieces.WHITE) {
       this.fullMoveNumber++;
     }
     // Recompute Occupancies
     recomputePieces();
+    // Update undoStack counter
+    ply++;
   }
 
+  /**
+   * Takes a move object and undo the move. Gets the extra rules for the position from the undoStack
+   *
+   * @param move to undo on the current position
+   */
   public void undoMove(Move move) {
+    // Figure out what piece is moving
+    int pieceMoving = this.getPieceAt(move.to());
     // Restore metadata from undoStack
     ply--;
     this.castlingRights = undoStack[ply].castlingRights;
@@ -347,34 +375,54 @@ public class Position {
     // Flip sideToMove
     this.flipSideToMove();
     // Move piece back
-    this.movePiece(move.to(), move.from());
+    this.movePiece(pieceMoving, move.to(), move.from());
+    if (undoStack[ply].capturedPieceIndex != -1) {
+      this.addPieceAt(undoStack[ply].capturedPieceIndex, undoStack[ply].capturedSquare);
+    }
     // Recompute occupancies
     recomputePieces();
   }
 
+  /** Flips the side to move */
   private void flipSideToMove() {
     this.sideToMove = Math.abs(this.sideToMove - 1);
   }
 
-  private void movePiece(int from, int to) {
-    int pieceType = this.getPieceAt(from);
+  /**
+   * Moves a piece from one position to another. Checks if there is a capture as well, if so remove
+   * the captured piece
+   *
+   * @param pieceMoving the type of piece that will be making the move
+   * @param from the square the piece is moving from
+   * @param to the square the piece is moving to
+   */
+  private void movePiece(int pieceMoving, int from, int to) {
     int possibleCapturedPiece = this.getPieceAt(to);
     if (possibleCapturedPiece != -1) {
       this.removePieceAt(possibleCapturedPiece, to);
       undoStack[ply].capturedPieceIndex = possibleCapturedPiece;
       undoStack[ply].capturedSquare = to;
-    } else {
-      undoStack[ply].capturedPieceIndex = -1;
-      undoStack[ply].capturedSquare = -1;
     }
-    this.removePieceAt(pieceType, from);
-    this.addPieceAt(pieceType, to);
+    this.removePieceAt(pieceMoving, from);
+    this.addPieceAt(pieceMoving, to);
   }
 
+  /**
+   * Removes a piece from the pieces.
+   *
+   * @param pieceType the piece to remove
+   * @param sq the square where the piece was on
+   */
   private void removePieceAt(int pieceType, int sq) {
     pieces[pieceType] &= ~(Squares.bit(sq));
   }
 
+  /**
+   * Adds a piece to pieces
+   *
+   * @param pieceType the piece to add
+   * @param sq the square where the piece will be added to
+   */
   private void addPieceAt(int pieceType, int sq) {
     pieces[pieceType] |= Squares.bit(sq);
   }
