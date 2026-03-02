@@ -24,7 +24,7 @@ public class PositionMoveTest {
   }
 
   @Test
-  void testEnPassantMoveAndUndo() {
+  void testEnPassantPossibilityMoveAndUndo() {
     Position startingBoard = Position.fromFEN(Position.FEN_STARTING_POSITION);
     assertEquals(-1, startingBoard.getEpSquare());
     Position expectedMove =
@@ -204,6 +204,21 @@ public class PositionMoveTest {
     assertTrue(expectedMove.equals(startingPosition));
     startingPosition.undoMove(testMove);
     testMove = Move.promotion(48, 57, Move.PROMO_N, true);
+    startingPosition.undoMove(testMove);
+    assertTrue(expectedUndo.equals(startingPosition));
+  }
+
+  @Test
+  void testEnPassantPlayedMoveAndUndo() {
+    Position startingPosition =
+        Position.fromFEN("r1bqkbnr/ppp1pppp/2n5/3pP3/8/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 3");
+    Position expectedMove =
+        Position.fromFEN("r1bqkbnr/ppp1pppp/2nP4/8/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 3");
+    Position expectedUndo =
+        Position.fromFEN("r1bqkbnr/ppp1pppp/2n5/3pP3/8/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 3");
+    Move testMove = Move.enPassant(36, 43);
+    startingPosition.makeMove(testMove);
+    assertTrue(expectedMove.equals(startingPosition));
     startingPosition.undoMove(testMove);
     assertTrue(expectedUndo.equals(startingPosition));
   }
