@@ -334,6 +334,20 @@ public class Position {
     this.calculateCastlingRight(pieceMoving, move.from(), move.to());
     // Move piece
     this.movePiece(pieceMoving, possibleCapturedPiece, move.from(), move.to());
+    // Check for en passant, and if fix the position
+    if (move.isEnPassant()) {
+      if (sideToMove == Pieces.WHITE) {
+        this.removePieceAt(Pieces.BP, move.to() - Squares.BOARD_SIZE);
+        this.epSquare = move.to();
+        undoStack[ply].capturedPieceIndex = Pieces.BP;
+        undoStack[ply].capturedSquare = move.to() - Squares.BOARD_SIZE;
+      } else {
+        this.removePieceAt(Pieces.WP, move.to() + Squares.BOARD_SIZE);
+        this.epSquare = move.to();
+        undoStack[ply].capturedPieceIndex = Pieces.WP;
+        undoStack[ply].capturedSquare = move.to() + Squares.BOARD_SIZE;
+      }
+    }
     // Check for promotion, if so change the piece
     if (move.isPromotion()) {
       int promoType = move.promotion();

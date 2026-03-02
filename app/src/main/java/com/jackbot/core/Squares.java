@@ -1,6 +1,9 @@
 package com.jackbot.core;
 
 public final class Squares {
+  /** Represents the length and width of the board */
+  public static final int BOARD_SIZE = 8;
+
   // Files
   // They go left to right on the chess board.
   /** 0 represents file A. */
