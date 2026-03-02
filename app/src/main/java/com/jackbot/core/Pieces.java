@@ -9,6 +9,9 @@ public final class Pieces {
   public static final int BLACK = 1;
 
   // Used to keep track of the type of pieces in a human readable way
+  /** -1 represents no piece. */
+  public static final int NP = -1;
+
   /** 0 represents that the piece is a white pawn. */
   public static final int WP = 0;
 
