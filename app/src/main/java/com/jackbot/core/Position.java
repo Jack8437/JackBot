@@ -436,7 +436,6 @@ public class Position {
     }
     // Check if the move was a castle, if so undo the rooks as well
     if (move.isCastle()) {
-      System.out.println("HERE");
       if (this.sideToMove == Pieces.WHITE) {
         // Queenside castle for white, if not kingside castle
         if (move.from() > move.to()) {
@@ -461,7 +460,6 @@ public class Position {
               Squares.sq(Squares.FILE_D, Squares.RANK_8),
               Squares.sq(Squares.FILE_A, Squares.RANK_8));
         } else {
-          System.out.println("HERE1");
           this.movePiece(
               Pieces.BR,
               Pieces.NP,
