@@ -25,6 +25,12 @@ public final class Move {
   /** Integer value for when a pawn promotes to a queen. */
   public static final int PROMO_Q = 4;
 
+  /**
+   * Integer value for when a pawn promotes for black. This is used to help convert a PROMO to a
+   * Pieces value.
+   */
+  public static final int PROMO_BLACK = 6;
+
   // Other flags options
   /** Bit value to represent a capture in a move. */
   private static final int CAPTURE = 0x1;
@@ -198,7 +204,7 @@ public final class Move {
    *
    * @return 0 if there is no promotion in the move, others the promotion piece type as an int.
    */
-  private int promotion() {
+  public int promotion() {
     return (rawData >> 12) & Move.FLAG_MASK;
   }
 

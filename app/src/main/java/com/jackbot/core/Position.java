@@ -334,6 +334,14 @@ public class Position {
     this.calculateCastlingRight(pieceMoving, move.from(), move.to());
     // Move piece
     this.movePiece(pieceMoving, possibleCapturedPiece, move.from(), move.to());
+    // Check for promotion, if so change the piece
+    if (move.isPromotion()) {
+      int promoType = move.promotion();
+      if (this.sideToMove == Pieces.BLACK) {
+        promoType += Move.PROMO_BLACK;
+      }
+      this.replacePieceAt(promoType, pieceMoving, move.to());
+    }
     // Check if the move involves a castle, if so move the rook as well
     if (move.isCastle()) {
       if (this.sideToMove == Pieces.WHITE) {
@@ -401,6 +409,8 @@ public class Position {
    * @param move to undo on the current position
    */
   public void undoMove(Move move) {
+    // Flip sideToMove
+    this.flipSideToMove();
     // Figure out what piece is moving
     int pieceMoving = this.getPieceAt(move.to());
     // Restore metadata from undoStack
@@ -409,6 +419,16 @@ public class Position {
     this.epSquare = undoStack[ply].epSquare;
     this.halfmoveClock = undoStack[ply].halfmoveClock;
     this.fullMoveNumber = undoStack[ply].fullMoveNumber;
+    // Check if the move was a promotion, if so revert back to a pawn
+    if (move.isPromotion()) {
+      int promo = move.promotion();
+      pieceMoving = Pieces.WP;
+      if (this.sideToMove == Pieces.BLACK) {
+        promo += move.PROMO_BLACK;
+        pieceMoving = Pieces.BP;
+      }
+      this.replacePieceAt(pieceMoving, promo, move.to());
+    }
     // Move piece back
     this.movePiece(pieceMoving, Pieces.NP, move.to(), move.from());
     if (undoStack[ply].capturedPieceIndex != Pieces.NP) {
@@ -419,7 +439,7 @@ public class Position {
       System.out.println("HERE");
       if (this.sideToMove == Pieces.WHITE) {
         // Queenside castle for white, if not kingside castle
-        if (move.from() < move.to()) {
+        if (move.from() > move.to()) {
           this.movePiece(
               Pieces.WR,
               Pieces.NP,
@@ -434,7 +454,7 @@ public class Position {
         }
       } else {
         // Queenside castle for black, if not kingside castle
-        if (move.from() < move.to()) {
+        if (move.from() > move.to()) {
           this.movePiece(
               Pieces.BR,
               Pieces.NP,
@@ -450,8 +470,6 @@ public class Position {
         }
       }
     }
-    // Flip sideToMove
-    this.flipSideToMove();
     // Recompute occupancies
     recomputePieces();
   }
@@ -520,6 +538,18 @@ public class Position {
     }
     this.removePieceAt(pieceMoving, from);
     this.addPieceAt(pieceMoving, to);
+  }
+
+  /**
+   * Replaces a piece at a given square.
+   *
+   * @param pieceTypeToAdd at the given square
+   * @param pieceTypeToRemove at the given square
+   * @param sq where the piece should be replaced
+   */
+  private void replacePieceAt(int pieceTypeToAdd, int pieceTypeToRemove, int sq) {
+    this.removePieceAt(pieceTypeToRemove, sq);
+    this.addPieceAt(pieceTypeToAdd, sq);
   }
 
   /**
