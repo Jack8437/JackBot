@@ -320,8 +320,9 @@ public class Position {
    * @param move to apply to the Position
    */
   public void makeMove(Move move) {
-    // Figure out what piece is moving
+    // Figure out what piece is moving and if there is a capture
     int pieceMoving = this.getPieceAt(move.from());
+    int possibleCapturedPiece = this.getPieceAt(move.to());
     // Update undo stack
     undoStack[ply].castlingRights = this.castlingRights;
     undoStack[ply].epSquare = this.epSquare;
@@ -329,8 +330,10 @@ public class Position {
     undoStack[ply].fullMoveNumber = this.fullMoveNumber;
     undoStack[ply].capturedPieceIndex = -1;
     undoStack[ply].capturedSquare = -1;
+    // Calculate new castling rights
+    this.calculateCastlingRight(pieceMoving, move.from(), move.to());
     // Move piece
-    this.movePiece(pieceMoving, move.from(), move.to());
+    this.movePiece(pieceMoving, possibleCapturedPiece, move.from(), move.to());
     // Check for en passant
     if (move.isDoublePush()) {
       if (this.sideToMove == Pieces.WHITE) {
@@ -375,8 +378,8 @@ public class Position {
     // Flip sideToMove
     this.flipSideToMove();
     // Move piece back
-    this.movePiece(pieceMoving, move.to(), move.from());
-    if (undoStack[ply].capturedPieceIndex != -1) {
+    this.movePiece(pieceMoving, Pieces.NP, move.to(), move.from());
+    if (undoStack[ply].capturedPieceIndex != Pieces.NP) {
       this.addPieceAt(undoStack[ply].capturedPieceIndex, undoStack[ply].capturedSquare);
     }
     // Recompute occupancies
@@ -389,16 +392,58 @@ public class Position {
   }
 
   /**
+   * Calculates the castling rights based on a specific move. Will remove all castling rights for a
+   * side if the king is moving. Checks to see if a piece is moving to or from a starting square for
+   * a rook.
+   *
+   * @param pieceMoving the pieceType that is moved, needed to check for king moves
+   * @param from square the piece is moving from
+   * @param to square the piece is moving to
+   */
+  private void calculateCastlingRight(int pieceMoving, int from, int to) {
+    if (pieceMoving == Pieces.WK) {
+      removeCasltingRights(WHITE_KINGSIDE | WHITE_QUEENSIDE);
+      return;
+    }
+    if (pieceMoving == Pieces.BK) {
+      removeCasltingRights(BLACK_KINGSIDE | BLACK_QUEENSIDE);
+      return;
+    }
+    if (from == 0 || to == 0) {
+      removeCasltingRights(WHITE_QUEENSIDE);
+    }
+    if (from == 7 || to == 7) {
+      removeCasltingRights(WHITE_KINGSIDE);
+    }
+    if (from == 56 || to == 56) {
+      removeCasltingRights(BLACK_QUEENSIDE);
+    }
+    if (from == 63 || to == 63) {
+      removeCasltingRights(BLACK_KINGSIDE);
+    }
+  }
+
+  /**
+   * Helper method to updated castlingRights for the position. Can be called multiple times for a
+   * specific castling right without affecting other castling right.
+   *
+   * @param casltingBitToRemove the bit to remove from castlingRights
+   */
+  private void removeCasltingRights(int casltingBitToRemove) {
+    this.castlingRights &= ~casltingBitToRemove;
+  }
+
+  /**
    * Moves a piece from one position to another. Checks if there is a capture as well, if so remove
    * the captured piece
    *
    * @param pieceMoving the type of piece that will be making the move
+   * @param possibleCapturedPiece the type of piece that is being captured, -1 for no piece
    * @param from the square the piece is moving from
    * @param to the square the piece is moving to
    */
-  private void movePiece(int pieceMoving, int from, int to) {
-    int possibleCapturedPiece = this.getPieceAt(to);
-    if (possibleCapturedPiece != -1) {
+  private void movePiece(int pieceMoving, int possibleCapturedPiece, int from, int to) {
+    if (possibleCapturedPiece != Pieces.NP) {
       this.removePieceAt(possibleCapturedPiece, to);
       undoStack[ply].capturedPieceIndex = possibleCapturedPiece;
       undoStack[ply].capturedSquare = to;
@@ -510,6 +555,12 @@ public class Position {
     return fullMoveNumber;
   }
 
+  /**
+   * Gets the piece at a given square
+   *
+   * @param square to get the piece type at
+   * @return the given piece type
+   */
   private int getPieceAt(int square) {
     long mask = Squares.bit(square);
     for (int counter = 0; counter < 12; counter++) {
@@ -517,7 +568,7 @@ public class Position {
         return counter;
       }
     }
-    return -1;
+    return Pieces.NP;
   }
 
   @Override
@@ -562,7 +613,7 @@ public class Position {
     for (int rank = 7; rank >= 0; rank--) {
       for (int file = 0; file <= 7; file++) {
         int piece = getPieceAt(Squares.sq(file, rank));
-        if (piece != -1) {
+        if (piece != Pieces.NP) {
           humanReadableBoard.append(FEN_LETTER_CONVENTION[getPieceAt(Squares.sq(file, rank))]);
         } else {
           humanReadableBoard.append('.');
