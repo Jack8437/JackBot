@@ -334,6 +334,40 @@ public class Position {
     this.calculateCastlingRight(pieceMoving, move.from(), move.to());
     // Move piece
     this.movePiece(pieceMoving, possibleCapturedPiece, move.from(), move.to());
+    // Check if the move involves a castle, if so move the rook as well
+    if (move.isCastle()) {
+      if (this.sideToMove == Pieces.WHITE) {
+        // Queenside castle for white, if not kingside castle
+        if (move.from() > move.to()) {
+          this.movePiece(
+              Pieces.WR,
+              Pieces.NP,
+              Squares.sq(Squares.FILE_A, Squares.RANK_1),
+              Squares.sq(Squares.FILE_D, Squares.RANK_1));
+        } else {
+          this.movePiece(
+              Pieces.WR,
+              Pieces.NP,
+              Squares.sq(Squares.FILE_H, Squares.RANK_1),
+              Squares.sq(Squares.FILE_F, Squares.RANK_1));
+        }
+      } else {
+        // Queenside castle for black, if not kingside castle
+        if (move.from() > move.to()) {
+          this.movePiece(
+              Pieces.BR,
+              Pieces.NP,
+              Squares.sq(Squares.FILE_A, Squares.RANK_8),
+              Squares.sq(Squares.FILE_D, Squares.RANK_8));
+        } else {
+          this.movePiece(
+              Pieces.BR,
+              Pieces.NP,
+              Squares.sq(Squares.FILE_H, Squares.RANK_8),
+              Squares.sq(Squares.FILE_F, Squares.RANK_8));
+        }
+      }
+    }
     // Check for en passant
     if (move.isDoublePush()) {
       if (this.sideToMove == Pieces.WHITE) {
@@ -375,13 +409,49 @@ public class Position {
     this.epSquare = undoStack[ply].epSquare;
     this.halfmoveClock = undoStack[ply].halfmoveClock;
     this.fullMoveNumber = undoStack[ply].fullMoveNumber;
-    // Flip sideToMove
-    this.flipSideToMove();
     // Move piece back
     this.movePiece(pieceMoving, Pieces.NP, move.to(), move.from());
     if (undoStack[ply].capturedPieceIndex != Pieces.NP) {
       this.addPieceAt(undoStack[ply].capturedPieceIndex, undoStack[ply].capturedSquare);
     }
+    // Check if the move was a castle, if so undo the rooks as well
+    if (move.isCastle()) {
+      System.out.println("HERE");
+      if (this.sideToMove == Pieces.WHITE) {
+        // Queenside castle for white, if not kingside castle
+        if (move.from() < move.to()) {
+          this.movePiece(
+              Pieces.WR,
+              Pieces.NP,
+              Squares.sq(Squares.FILE_D, Squares.RANK_1),
+              Squares.sq(Squares.FILE_A, Squares.RANK_1));
+        } else {
+          this.movePiece(
+              Pieces.WR,
+              Pieces.NP,
+              Squares.sq(Squares.FILE_F, Squares.RANK_1),
+              Squares.sq(Squares.FILE_H, Squares.RANK_1));
+        }
+      } else {
+        // Queenside castle for black, if not kingside castle
+        if (move.from() < move.to()) {
+          this.movePiece(
+              Pieces.BR,
+              Pieces.NP,
+              Squares.sq(Squares.FILE_D, Squares.RANK_8),
+              Squares.sq(Squares.FILE_A, Squares.RANK_8));
+        } else {
+          System.out.println("HERE1");
+          this.movePiece(
+              Pieces.BR,
+              Pieces.NP,
+              Squares.sq(Squares.FILE_F, Squares.RANK_8),
+              Squares.sq(Squares.FILE_H, Squares.RANK_8));
+        }
+      }
+    }
+    // Flip sideToMove
+    this.flipSideToMove();
     // Recompute occupancies
     recomputePieces();
   }

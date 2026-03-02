@@ -83,6 +83,8 @@ public class PositionMoveTest {
     Position startingBoard = Position.fromFEN(Position.FEN_STARTING_POSITION);
     Position expectedMove =
         Position.fromFEN("rnbq1bnr/ppppkppp/8/4p3/4P3/8/PPPPKPPP/RNBQ1BNR w - - 2 3");
+    Position expectedUndo =
+        Position.fromFEN("rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2");
     Move testMove = Move.doublePawnPush(12, 28);
     startingBoard.makeMove(testMove);
     testMove = Move.doublePawnPush(52, 36);
@@ -92,13 +94,19 @@ public class PositionMoveTest {
     testMove = Move.of(60, 52);
     startingBoard.makeMove(testMove);
     assertTrue(expectedMove.equals(startingBoard));
+    startingBoard.undoMove(testMove);
+    testMove = Move.of(4, 12);
+    startingBoard.undoMove(testMove);
+    assertTrue(expectedUndo.equals(startingBoard));
   }
 
   @Test
-  void testRookMoveRemovingCastlingRights() {
+  void testRookMoveAndUndoRemovingCastlingRights() {
     Position startingBoard = Position.fromFEN(Position.FEN_STARTING_POSITION);
     Position expectedMove =
         Position.fromFEN("1nbqkbnr/rppppppp/8/p7/7P/8/PPPPPPPR/RNBQKBN1 w Qk - 2 3");
+    Position expectedUndo =
+        Position.fromFEN("rnbqkbnr/1ppppppp/8/p7/7P/8/PPPPPPP1/RNBQKBNR w KQkq a6 0 2");
     Move testMove = Move.doublePawnPush(15, 31);
     startingBoard.makeMove(testMove);
     testMove = Move.doublePawnPush(48, 32);
@@ -108,6 +116,11 @@ public class PositionMoveTest {
     testMove = Move.of(56, 48);
     startingBoard.makeMove(testMove);
     assertTrue(expectedMove.equals(startingBoard));
+    startingBoard.undoMove(testMove);
+    testMove = Move.of(7, 15);
+    startingBoard.undoMove(testMove);
+    System.out.println(expectedUndo.toString() + startingBoard.toString());
+    assertTrue(expectedUndo.equals(startingBoard));
   }
 
   @Test
@@ -116,10 +129,48 @@ public class PositionMoveTest {
         Position.fromFEN("rn1qkbnr/pbpppp1p/6p1/1p6/1P6/6P1/PBPPPP1P/RN1QKBNR w KQkq - 0 4");
     Position expectedMove =
         Position.fromFEN("rn1qkbnB/p1pppp1p/6p1/1p6/1P6/6P1/P1PPPP1P/RN1QKBNb w Qq - 0 5");
+    Position expectedUndo =
+        Position.fromFEN("rn1qkbnr/pbpppp1p/6p1/1p6/1P6/6P1/PBPPPP1P/RN1QKBNR w KQkq - 0 4");
     Move testMove = Move.capture(9, 63);
     startingPosition.makeMove(testMove);
     testMove = Move.capture(49, 7);
     startingPosition.makeMove(testMove);
     assertTrue(expectedMove.equals(startingPosition));
+    startingPosition.undoMove(testMove);
+    testMove = Move.capture(9, 63);
+    startingPosition.undoMove(testMove);
+    assertTrue(expectedUndo.equals(startingPosition));
+  }
+
+  @Test
+  void testCastlingAndUndoingCastling() {
+    Position startingBoard = Position.fromFEN(Position.FEN_STARTING_POSITION);
+    Position expectedMove =
+        Position.fromFEN("rnbq1rk1/pppp1ppp/3b1n2/4p3/3P4/2NQB3/PPP1PPPP/2KR1BNR b - - 7 5");
+    Position expectedUndo =
+        Position.fromFEN("rnbqk2r/pppp1ppp/3b1n2/4p3/3P4/2NQB3/PPP1PPPP/R3KBNR b KQkq - 5 4");
+    Move testMove = Move.doublePawnPush(11, 27);
+    startingBoard.makeMove(testMove);
+    testMove = Move.doublePawnPush(52, 36);
+    startingBoard.makeMove(testMove);
+    testMove = Move.of(2, 20);
+    startingBoard.makeMove(testMove);
+    testMove = Move.of(61, 43);
+    startingBoard.makeMove(testMove);
+    testMove = Move.of(1, 18);
+    startingBoard.makeMove(testMove);
+    testMove = Move.of(62, 45);
+    startingBoard.makeMove(testMove);
+    testMove = Move.of(3, 19);
+    startingBoard.makeMove(testMove);
+    testMove = Move.castle(60, 62);
+    startingBoard.makeMove(testMove);
+    testMove = Move.castle(4, 2);
+    startingBoard.makeMove(testMove);
+    assertTrue(expectedMove.equals(startingBoard));
+    startingBoard.undoMove(testMove);
+    testMove = Move.castle(60, 62);
+    startingBoard.undoMove(testMove);
+    assertTrue(expectedUndo.equals(startingBoard));
   }
 }
