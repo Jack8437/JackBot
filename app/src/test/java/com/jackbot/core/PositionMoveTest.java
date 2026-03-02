@@ -173,4 +173,38 @@ public class PositionMoveTest {
     startingBoard.undoMove(testMove);
     assertTrue(expectedUndo.equals(startingBoard));
   }
+
+  @Test
+  void testBasicPromotionAndUndo() {
+    Position startingPosition = Position.fromFEN("4k3/P7/8/8/8/8/p7/4K3 w - - 0 50");
+    Position expectedMove = Position.fromFEN("N3k3/8/8/8/8/8/8/b3K3 w - - 0 51");
+    Position expectedUndo = Position.fromFEN("4k3/P7/8/8/8/8/p7/4K3 w - - 0 50");
+    Move testMove = Move.promotion(48, 56, Move.PROMO_N, false);
+    startingPosition.makeMove(testMove);
+    testMove = Move.promotion(8, 0, Move.PROMO_B, false);
+    startingPosition.makeMove(testMove);
+    assertTrue(expectedMove.equals(startingPosition));
+    startingPosition.undoMove(testMove);
+    testMove = Move.promotion(48, 56, Move.PROMO_N, false);
+    startingPosition.undoMove(testMove);
+    System.out.println(expectedUndo.toString() + startingPosition.toString());
+    assertTrue(expectedUndo.equals(startingPosition));
+  }
+
+  @Test
+  void testCapturePromotionAndUndo() {
+    Position startingPosition = Position.fromFEN("1p2k3/P7/8/8/8/8/p7/1P2K3 w - - 0 50");
+    Position expectedMove = Position.fromFEN("1N2k3/8/8/8/8/8/8/1b2K3 w - - 0 51");
+    Position expectedUndo = Position.fromFEN("1p2k3/P7/8/8/8/8/p7/1P2K3 w - - 0 50");
+    Move testMove = Move.promotion(48, 57, Move.PROMO_N, true);
+    startingPosition.makeMove(testMove);
+    testMove = Move.promotion(8, 1, Move.PROMO_B, true);
+    startingPosition.makeMove(testMove);
+    System.out.println(expectedMove.toString() + startingPosition.toString());
+    assertTrue(expectedMove.equals(startingPosition));
+    startingPosition.undoMove(testMove);
+    testMove = Move.promotion(48, 57, Move.PROMO_N, true);
+    startingPosition.undoMove(testMove);
+    assertTrue(expectedUndo.equals(startingPosition));
+  }
 }
