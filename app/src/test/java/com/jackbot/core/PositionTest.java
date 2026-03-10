@@ -15,7 +15,7 @@ public class PositionTest {
 
   @Test
   void testStartingPositionPawns() {
-    Position startingBoard = Position.fromFEN(Position.FEN_STARTING_POSITION);
+    Position startingBoard = Fen.parse(Fen.FEN_STARTING_POSITION);
     long[] pieces = startingBoard.getPieces();
     // Test white pawns
     assertEquals(Squares.rankMask(Squares.RANK_2), pieces[Pieces.WP]);
@@ -27,7 +27,7 @@ public class PositionTest {
 
   @Test
   void testStartingPositionKnights() {
-    Position startingBoard = Position.fromFEN(Position.FEN_STARTING_POSITION);
+    Position startingBoard = Fen.parse(Fen.FEN_STARTING_POSITION);
     long[] pieces = startingBoard.getPieces();
     // Test white knights
     assertEquals(
@@ -45,7 +45,7 @@ public class PositionTest {
 
   @Test
   void testStartingPositionBishops() {
-    Position startingBoard = Position.fromFEN(Position.FEN_STARTING_POSITION);
+    Position startingBoard = Fen.parse(Fen.FEN_STARTING_POSITION);
     long[] pieces = startingBoard.getPieces();
     // Test white bishops
     assertEquals(
@@ -63,7 +63,7 @@ public class PositionTest {
 
   @Test
   void testStartingPositionRooks() {
-    Position startingBoard = Position.fromFEN(Position.FEN_STARTING_POSITION);
+    Position startingBoard = Fen.parse(Fen.FEN_STARTING_POSITION);
     long[] pieces = startingBoard.getPieces();
     // Test white rooks
     assertEquals(
@@ -81,7 +81,7 @@ public class PositionTest {
 
   @Test
   void testStartingPositionQueens() {
-    Position startingBoard = Position.fromFEN(Position.FEN_STARTING_POSITION);
+    Position startingBoard = Fen.parse(Fen.FEN_STARTING_POSITION);
     long[] pieces = startingBoard.getPieces();
     // Test white queen
     assertEquals(Squares.bit(Squares.sq(Squares.FILE_D, Squares.RANK_1)), pieces[Pieces.WQ]);
@@ -93,7 +93,7 @@ public class PositionTest {
 
   @Test
   void testStartingPositionKings() {
-    Position startingBoard = Position.fromFEN(Position.FEN_STARTING_POSITION);
+    Position startingBoard = Fen.parse(Fen.FEN_STARTING_POSITION);
     long[] pieces = startingBoard.getPieces();
     // Test white king
     assertEquals(Squares.bit(Squares.sq(Squares.FILE_E, Squares.RANK_1)), pieces[Pieces.WK]);
@@ -105,7 +105,7 @@ public class PositionTest {
 
   @Test
   void testStartingPositionWhitePieces() {
-    Position startingBoard = Position.fromFEN(Position.FEN_STARTING_POSITION);
+    Position startingBoard = Fen.parse(Fen.FEN_STARTING_POSITION);
     long whitePieces = startingBoard.getWhitePieces();
     assertEquals(Squares.rankMask(Squares.RANK_1) | Squares.rankMask(Squares.RANK_2), whitePieces);
     assertEquals(16, Long.bitCount(whitePieces));
@@ -113,7 +113,7 @@ public class PositionTest {
 
   @Test
   void testStartingPositionBlackPieces() {
-    Position startingBoard = Position.fromFEN(Position.FEN_STARTING_POSITION);
+    Position startingBoard = Fen.parse(Fen.FEN_STARTING_POSITION);
     long blackPieces = startingBoard.getBlackPieces();
     assertEquals(Squares.rankMask(Squares.RANK_7) | Squares.rankMask(Squares.RANK_8), blackPieces);
     assertEquals(16, Long.bitCount(blackPieces));
@@ -121,7 +121,7 @@ public class PositionTest {
 
   @Test
   void testStartingPositionAllPieces() {
-    Position startingBoard = Position.fromFEN(Position.FEN_STARTING_POSITION);
+    Position startingBoard = Fen.parse(Fen.FEN_STARTING_POSITION);
     long allPieces = startingBoard.getAllPieces();
     long whitePieces = startingBoard.getWhitePieces();
     long blackPieces = startingBoard.getBlackPieces();
@@ -137,7 +137,7 @@ public class PositionTest {
 
   @Test
   void testStartingPositionMetadata() {
-    Position startingBoard = Position.fromFEN(Position.FEN_STARTING_POSITION);
+    Position startingBoard = Fen.parse(Fen.FEN_STARTING_POSITION);
     assertEquals(Pieces.WHITE, startingBoard.getSideToMove());
     assertEquals(1, Position.WHITE_KINGSIDE);
     assertEquals(2, Position.WHITE_QUEENSIDE);
@@ -156,7 +156,7 @@ public class PositionTest {
 
   @Test
   void testStartingPositionNoPieceOverlap() {
-    Position startingBoard = Position.fromFEN(Position.FEN_STARTING_POSITION);
+    Position startingBoard = Fen.parse(Fen.FEN_STARTING_POSITION);
     long[] pieces = startingBoard.getPieces();
     for (int firstBitBoard = 0; firstBitBoard <= 11; firstBitBoard++) {
       for (int secondBitBoard = firstBitBoard + 1; secondBitBoard <= 11; secondBitBoard++) {
@@ -167,53 +167,51 @@ public class PositionTest {
 
   @Test
   void testEnPassantPosition() {
-    Position enPassant = Position.fromFEN(FEN_EN_PASSANT);
+    Position enPassant = Fen.parse(FEN_EN_PASSANT);
     assertEquals(44, enPassant.getEpSquare());
   }
 
   @Test()
   void testInvalidAmountOfArgs() {
     String invalidArgs = "8/8/8/8/8/8/8/8 w - - 0";
-    assertThrows(IllegalArgumentException.class, () -> Position.fromFEN(invalidArgs));
+    assertThrows(IllegalArgumentException.class, () -> Fen.parse(invalidArgs));
   }
 
   @Test()
   void testInvalidFenPiecePosition() {
     String invalidAmountOfRanks = "8/8/8/8/8/8/8 w - - 0 0";
-    assertThrows(IllegalArgumentException.class, () -> Position.fromFEN(invalidAmountOfRanks));
+    assertThrows(IllegalArgumentException.class, () -> Fen.parse(invalidAmountOfRanks));
     String invalidAmountOfFiles = "9/8/8/8/8/8/8/8 w - - 0 0";
-    assertThrows(IllegalArgumentException.class, () -> Position.fromFEN(invalidAmountOfFiles));
+    assertThrows(IllegalArgumentException.class, () -> Fen.parse(invalidAmountOfFiles));
     String invalidPieceNotation = "8/f7/8/8/8/8/8/8 w - - 0 0";
-    assertThrows(IllegalArgumentException.class, () -> Position.fromFEN(invalidPieceNotation));
+    assertThrows(IllegalArgumentException.class, () -> Fen.parse(invalidPieceNotation));
   }
 
   @Test()
   void testInvalidSideToMovePosition() {
     String invalidSideToMove = "8/8/8/8/8/8/8/8 c - - 0 0";
-    assertThrows(IllegalArgumentException.class, () -> Position.fromFEN(invalidSideToMove));
+    assertThrows(IllegalArgumentException.class, () -> Fen.parse(invalidSideToMove));
   }
 
   @Test()
   void testInvalidCastlingPosition() {
     String invalidCastlingPosition = "8/8/8/8/8/8/8/8 w b - 0 0";
-    assertThrows(IllegalArgumentException.class, () -> Position.fromFEN(invalidCastlingPosition));
+    assertThrows(IllegalArgumentException.class, () -> Fen.parse(invalidCastlingPosition));
   }
 
   @Test()
   void testInvalidEnPPosition() {
     String invalidEnPPositionInvalidEntry = "8/8/8/8/8/8/8/8 w - e 0 0";
-    assertThrows(
-        IllegalArgumentException.class, () -> Position.fromFEN(invalidEnPPositionInvalidEntry));
+    assertThrows(IllegalArgumentException.class, () -> Fen.parse(invalidEnPPositionInvalidEntry));
     String invalidEnPPositionInvalidSquare = "8/8/8/8/8/8/8/8 w - q5 0 0";
-    assertThrows(
-        IllegalArgumentException.class, () -> Position.fromFEN(invalidEnPPositionInvalidSquare));
+    assertThrows(IllegalArgumentException.class, () -> Fen.parse(invalidEnPPositionInvalidSquare));
   }
 
   @Test()
   void testInvalidMoveCounterPosition() {
     String invalidHalfmovePosition = "8/8/8/8/8/8/8/8 w - - a 0";
-    assertThrows(IllegalArgumentException.class, () -> Position.fromFEN(invalidHalfmovePosition));
+    assertThrows(IllegalArgumentException.class, () -> Fen.parse(invalidHalfmovePosition));
     String invalidTotalMovePosition = "8/8/8/8/8/8/8/8 w - - 0 a";
-    assertThrows(IllegalArgumentException.class, () -> Position.fromFEN(invalidTotalMovePosition));
+    assertThrows(IllegalArgumentException.class, () -> Fen.parse(invalidTotalMovePosition));
   }
 }
